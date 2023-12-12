@@ -78,6 +78,11 @@ func (c *LRU) Items() []*Item {
 	return items
 }
 
+func (c *LRU) contains(key uint64) bool {
+	_, ok := c.items[key]
+	return ok
+}
+
 func (c *LRU) removeOldest() {
 	ele := c.evictList.Back()
 	if ele != nil {
@@ -85,10 +90,19 @@ func (c *LRU) removeOldest() {
 	}
 }
 
+func (c *LRU) getAndRemoveOldest() (uint64, any, bool) {
+	ele := c.evictList.Back()
+	if ele != nil {
+		c.removeElement(ele)
+		return ele.Value.(*Item).Key, ele.Value.(*Item).Value, true
+	}
+	return 0, nil, false
+}
+
 func (c *LRU) removeElement(ele *list.Element) {
 	c.evictList.Remove(ele)
-	ent := ele.Value.(*Item)
-	delete(c.items, ent.Key)
+	item := ele.Value.(*Item)
+	delete(c.items, item.Key)
 }
 
 func (c *LRU) removeIfExist(key uint64) bool {
