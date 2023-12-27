@@ -47,7 +47,7 @@ func (c *LRU) Put(key uint64, value any) {
 	ele := c.evictList.PushFront(item)
 	c.items[key] = ele
 	if c.Len() > c.size {
-		c.removeOldest()
+		c.RemoveOldest()
 	}
 }
 
@@ -58,8 +58,8 @@ func (c *LRU) Peek(key uint64) (any, bool) {
 	return nil, false
 }
 
-func (c *LRU) Remove(key uint64) {
-	c.removeIfExist(key)
+func (c *LRU) Remove(key uint64) bool {
+	return c.removeIfExist(key)
 }
 
 func (c *LRU) Purge() {
@@ -78,19 +78,19 @@ func (c *LRU) Items() []*Item {
 	return items
 }
 
-func (c *LRU) contains(key uint64) bool {
+func (c *LRU) Contains(key uint64) bool {
 	_, ok := c.items[key]
 	return ok
 }
 
-func (c *LRU) removeOldest() {
+func (c *LRU) RemoveOldest() {
 	ele := c.evictList.Back()
 	if ele != nil {
 		c.removeElement(ele)
 	}
 }
 
-func (c *LRU) getAndRemoveOldest() (uint64, any, bool) {
+func (c *LRU) GetAndRemoveOldest() (uint64, any, bool) {
 	ele := c.evictList.Back()
 	if ele != nil {
 		c.removeElement(ele)

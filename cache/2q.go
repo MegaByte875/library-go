@@ -12,6 +12,7 @@ const (
 	defaultGhostRatio = 0.50
 )
 
+// TwoQueueCache is '2Q' cache.
 type TwoQueueCache struct {
 	size       int
 	recentSize int
@@ -75,18 +76,18 @@ func (c *TwoQueueCache) Get(key uint64) (any, bool) {
 }
 
 func (c *TwoQueueCache) Put(key uint64, value any) {
-	if c.frequent.contains(key) {
+	if c.frequent.Contains(key) {
 		c.frequent.Put(key, value)
 		return
 	}
 
-	if c.recent.contains(key) {
+	if c.recent.Contains(key) {
 		c.recent.Remove(key)
 		c.frequent.Put(key, value)
 		return
 	}
 
-	if c.evict.contains(key) {
+	if c.evict.Contains(key) {
 		c.ensureSpace(true)
 		c.evict.Remove(key)
 		c.frequent.Put(key, value)
@@ -105,13 +106,13 @@ func (c *TwoQueueCache) ensureSpace(recentEvict bool) {
 
 	// If the recent buffer is larger than the target, evict from there
 	if c.recent.Len() > 0 && (c.recent.Len() > c.recentSize || (c.recent.Len() == c.recentSize && !recentEvict)) {
-		k, _, _ := c.recent.getAndRemoveOldest()
+		k, _, _ := c.recent.GetAndRemoveOldest()
 		c.evict.Put(k, nil)
 		return
 	}
 
 	// Remove from the frequent list otherwise
-	c.frequent.removeOldest()
+	c.frequent.RemoveOldest()
 }
 
 func (c *TwoQueueCache) Peek(key uint64) (any, bool) {
@@ -122,13 +123,13 @@ func (c *TwoQueueCache) Peek(key uint64) (any, bool) {
 }
 
 func (c *TwoQueueCache) Remove(key uint64) {
-	if c.frequent.removeIfExist(key) {
+	if c.frequent.Remove(key) {
 		return
 	}
-	if c.recent.removeIfExist(key) {
+	if c.recent.Remove(key) {
 		return
 	}
-	if c.evict.removeIfExist(key) {
+	if c.evict.Remove(key) {
 		return
 	}
 }
